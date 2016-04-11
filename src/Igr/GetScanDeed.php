@@ -1,8 +1,8 @@
 <?php
 namespace Igr;
-require '..\..\vendor\autoload.php';
-use Whoops\Run;
-use  Whoops\Handler\PrettyPageHandler;
+/*require '..\..\vendor\autoload.php';*/
+/*use Whoops\Run;
+use  Whoops\Handler\PrettyPageHandler;*/
 
 //   USING MONOLOG
 /*use \Monolog\Logger;
@@ -16,13 +16,13 @@ $logger->pushHandler($browserHanlder);
 $logger->addInfo('Error Message');*/
 
 //USING WHOOPS
-$whoops = new \Whoops\Run;
+/*$whoops = new \Whoops\Run;
 $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
-$whoops->register();
+$whoops->register();*/
 
  /*USING PHP_SQLSVR*/
 $serverName = "localhost";
-$connectionOptions = array("Database"=>"eSiroi");
+$connectionOptions = array("Database"=>"Registration", "UID"=>"sa","PWD"=>"nic");
 
 /* Connect using Windows Authentication. */
 try

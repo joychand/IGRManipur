@@ -1,43 +1,4 @@
-<?php
-error_reporting( E_ALL );
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-if( isset($_POST['submit'])){
 
-  $serverName = "localhost";
-  $connectionOptions = array("Database"=>"eSiroi");
-
-  /* Connect using Windows Authentication. */
-  $conn = sqlsrv_connect( $serverName, $connectionOptions);
-  if( $conn === false )
-    die( FormatErrors( sqlsrv_errors() ) );
-
-  $query="SELECT * from
-             Deed where TsNo='%' + ? + '%' and TsYear='%' + ? + '%'";
-  $params = array(&$_POST['DeedNo'],
-
-
-      &$_POST['Year']);
-
-
-  $data=sqlsrv_query($conn,$query,$params);
-  if(sqlsrv_has_rows($data))
-    die(print_r(sqlsrv_errors(),true));
-  if($row=sqlsrv_fetch_array($data,SQLSRV_FETCH_ASSOC)){
-$deed=$row['TsNo'];
-    $Year=$row['TsYear'];
-    $Executant=$row['Executant'];
-    $Claimant=$row['claimant'];
-    $DateofPresentant=$row['Presentant'];
-    $TransType=$row['TransType'];
-    $ShowDivFlag=true;
-
-
-  }
-
-
-}
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,6 +32,54 @@ $deed=$row['TsNo'];
 </head>
 
 <body>
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+use Igr\GetScanDeed;
+$ShowDivFlag=false;
+$happu ='dlkfjdlkfjd';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  if( isset($_POST['submit'])){
+try{
+  $serverName = "localhost";
+  $connectionOptions = array("Database"=>"Registration","UID"=>"sa","PWD"=>"nic");
+
+  /* Connect using Windows Authentication. */
+  $conn = sqlsrv_connect( $serverName, $connectionOptions);
+  if( $conn === false )
+    die( print_r( sqlsrv_errors(),true ) );
+
+  $query="SELECT * from
+             Deed where TSNo=? and TSYear=?";
+  $params = array(&$_POST['DeedNo'],
+      &$_POST['Year']);
+
+
+  $data=sqlsrv_query($conn,$query,$params);
+  if($data===false)
+    die(print_r(sqlsrv_errors(),true));
+  if($row=sqlsrv_fetch_array($data,SQLSRV_FETCH_ASSOC)){
+    $deed=$row['TSNo'];
+    $Year=$row['TSYear'];
+    /*$Executant=$row['Executant'];
+    $Claimant=$row['claimant'];*/
+   /* $DateofPresentant=$row['Presentant'];*/
+    $TransType=$row['TransType'];
+    $ShowDivFlag=true;
+    $happu='happu';
+  }
+sqlsrv_free_stmt($data);
+  sqlsrv_close($conn);
+}
+  catch(Exception $e){
+    sqlsrv_free_stmt($data);
+    sqlsrv_close($conn);
+    die( $e->getMessage());
+  }
+
+  }
+}
+?>
 <div class="blog-header" style="background-color:#a9c7e1;">
   <div class="container">
     <br>
@@ -112,7 +121,7 @@ $deed=$row['TsNo'];
             <div class="col-md-12">
               <h2 class="blog-post-title">Search Registered Documents</h2>
               <div class="row">
-                <form class="form-inline" role="form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+                <form class="form-inline" role="form" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>" method="POST">
                   <div class="form-group">
                     <label for="DeedNo">Deed No. :</label>
                     <input type="text" class="form-control" id="DeedNo" name="DeedNo">
@@ -122,7 +131,7 @@ $deed=$row['TsNo'];
                     <input type="text" class="form-control" id="Year" name="Year">
                   </div>
 
-                  <button type="submit" class="btn btn-primary">Search</button>
+                  <button type="submit"  name='submit'class="btn btn-primary">Search</button>
                 </form>
               </div>
             </div>
@@ -173,9 +182,9 @@ $deed=$row['TsNo'];
           </form>
         </div><!-- /.blog-post -->
       </div>
-d
+
 <div>
-  <div class="table-responsive" <?php if ($showDivFlag===false){?>style="display:none"<?php } ?>>
+  <div class="table-responsive"   >
     <table class="table table-striped">
       <thead> <tr>
         <th>#</th>
@@ -189,28 +198,32 @@ d
       <tbody>
       <tr>
         <th scope="row">1</th>
-        <td><?php echo $deed?></td>
-        <td><?php echo $deed?></td>
-        <td><?php echo $deed?></td>
-        <td><?php echo $deed?></td>
-        <td><?php echo $deed?></td>
-        <td><?php echo $deed?></td>
-        <td><div  type ="button"class="btn btn-sm btn-info"><a href="getpdf.php">ScannedDoc</a> </div></td>
+        <td><?php echo $deed ?></td>
+        <td><?php echo $Year ?></td>
+        <td><?php echo $TransType ?></td>
+        <td><?php echo $happu ?></td>
+        <td><?php echo $happu ?></td>
+        <td><?php echo $happu ?></td>
+        <td><div  type ="button"class="btn btn-sm btn-info"><a href="src\Igr\GetScanDeed.php" target="deedview">ViewDeed</a></div></td>
       </tr>
       </tbody>
     </table>
   </div>
 </div>
-<div>
-  <iframe src="http://localhost:63342/IGRManipur/getpdf.php" frameborder="5" width="100%"height="auto"></iframe>
-</div>
+
 
 
 
     </div><!-- /.blog-main -->
+
   </div><!-- /.row -->
 
 </div><!-- /.container -->
+<div class="container" >
+  <div class="col-sm-9 col-sm-offset-3">
+    <iframe name="deedview" id="deedview" frameborder="5" width="900"height="900"  scrolling="no" ></iframe>
+  </div>
+  </div>
 
 <footer class="blog-footer">
   <p>Develop & Design </a> by <a href="">NIC MANIPUR STATE CENTRE</a>.</p>
