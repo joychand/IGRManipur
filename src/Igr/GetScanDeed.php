@@ -27,6 +27,7 @@ $connectionOptions = array("Database"=>"Registration", "UID"=>"sa","PWD"=>"nic")
 /* Connect using Windows Authentication. */
 try
 {
+    $SHOW_FRAME=false;
     $conn = sqlsrv_connect( $serverName, $connectionOptions);
 
     $query="SELECT * from
@@ -42,6 +43,7 @@ try
 
     header('content-type:application/pdf');
     header("Content-Disposition:inline;filename='downloaded.pdf'");
+    $SHOW_FRAME=true;
     fpassthru($data);
     sqlsrv_free_stmt( $stmt );
     sqlsrv_close( $conn );
