@@ -254,7 +254,7 @@ $params3=array($TransType);
         <td><?php echo $execSurname.' '.$execMiddleName ?></td>
         <td><?php echo $claimSurname.' '.$claimMiddlename ?></td>
         <td><?php echo $DateofPresentant ?></td>
-        <td><div  type ="button"class="btn btn-sm btn-info"><a href="src\Igr\GetScanDeed.php" target="deedview">ViewDeed</a></div></td>
+        <td><div  type ="button"class="btn btn-sm btn-info"><a href="src\Igr\GetScanDeed.php?DeedNo=<?php echo $deed;?>&Year=<?php echo $Year;?>" target="deedview">ViewDeed</a></div></td>
       </tr>
       </tbody>
     </table>

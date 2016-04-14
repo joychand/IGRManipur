@@ -31,11 +31,14 @@ try
     $conn = sqlsrv_connect( $serverName, $connectionOptions);
 
     $query="SELECT * from
-             DupScandoc where RegNo=1420 and RegYear=2007";
+             ScanDocTest where RegNo=? and RegYear=?";
     /*$param=array(filter_input(INPUT_POST,'regno',FILTER_SANITIZE_FULL_SPECIAL_CHARS),
         filter_input(INPUT_POST,'regyear',FILTER_SANITIZE_FULL_SPECIAL_CHARS ));*/
     /*$stmt=sqlsrv_prepare($conn,$query,$param);*/
-    $stmt=sqlsrv_prepare($conn,$query);
+    $params= array(&$_GET['DeedNo'],
+                   &$_GET['Year']);
+
+    $stmt=sqlsrv_prepare($conn,$query,$params);
 
     sqlsrv_execute($stmt);
     if(sqlsrv_fetch($stmt))
