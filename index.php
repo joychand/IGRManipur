@@ -45,7 +45,7 @@
           <div class="sidebar-module">
             <h4>Links</h4>
             <ol class="list-unstyled">
-              <li><a href="rev-doc-search.php">Search Rev Doc</a></li>
+              <li><a href="rev-doc-search.php">Search Registered Doc</a></li>
               <li><a href="#">February 2014</a></li>
               <li><a href="#">January 2014</a></li>
               <li><a href="#">December 2013</a></li>

@@ -33,36 +33,54 @@
 
 <body>
 <?php
-error_reporting(E_ALL);
+/*require 'vendor\autoload.php';
+use Whoops\Run;
+use  Whoops\Handler\PrettyPageHandler;*/
+/*error_reporting(E_ALL);
 ini_set('display_errors', 1);
-use Igr\GetScanDeed;
+ini_set('display_startup_errors','On');*/
+//USING WHOOPS
+/*$whoops = new \Whoops\Run();
+$whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler());
+$whoops->register();*/
 $ShowDivFlag=false;
+$errorMessage='';
+
 global $SHOW_FRAME;
+$searchSuccess=true;
 $SHOW_FRAME=false;
-$happu ='dlkfjdlkfjd';
+
+$serverName = "localhost";
+$connectionOptions = array("Database"=>"Registration","UID"=>"sa","PWD"=>"nic");
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   if( isset($_POST['submit'])){
+   // echo $_POST['transaction'];
 try{
-  $serverName = "localhost";
-  $connectionOptions = array("Database"=>"Registration","UID"=>"sa","PWD"=>"nic");
-
-  /* Connect using Windows Authentication. */
   $conn = sqlsrv_connect( $serverName, $connectionOptions);
   if( $conn === false )
-    die( print_r( sqlsrv_errors(),true ) );
+    throw new Exception('Sorry Unable to connect to database...Plz try after agian');
+
 
   $query1="SELECT * from
-             Deed where TSNo=? and TSYear=?";
+             Deed where TSNo=? and TSYear=? and TransType=?";
   $params = array(&$_POST['DeedNo'],
-                  &$_POST['Year']);
+                  &$_POST['Year'],
+                  &$_POST['transaction']);
   $deedStmt=sqlsrv_query($conn,$query1,$params);
-  if($deedStmt===false)
-    die(print_r(sqlsrv_errors(),true));
+  if($deedStmt===false){
+
+
+    throw new Exception('Error in fetching Data');
+  }
+if(!sqlsrv_has_rows($deedStmt))
+{
+  //$searchSuccess=false;
+  throw new Exception('Records not Found. Check the data and try  again');
+}
   if($row=sqlsrv_fetch_array($deedStmt,SQLSRV_FETCH_ASSOC)){
     $deed=$row['TSNo'];
     $Year=$row['TSYear'];
-    /*$Executant=$row['Executant'];
-    $Claimant=$row['claimant'];*/
     $DateofPresentant=date_format($row['Date_Time_Present'], 'd/m/y');
     $TransType=$row['TransType'];
     $ShowDivFlag=true;
@@ -83,8 +101,11 @@ try{
 
 
   $partyStmt=sqlsrv_query($conn,$query2,$params2);
-  if($partyStmt===false)
-    die(print_r(sqlsrv_errors, true));
+  if($partyStmt===false){
+   throw new Exception('Sorry in error in fetching data');
+    //die(print_r(sqlsrv_errors, true));
+
+  }
   if($row=sqlsrv_fetch_array($partyStmt,SQLSRV_FETCH_NUMERIC)){
     $execSurname=$row[0];
     $execMiddleName=$row[1];
@@ -105,26 +126,34 @@ try{
 
   $query3 = "SELECT  tran_name from MajorTrans_code
               WHERE  tran_maj_code=?";
-$params3=array($TransType);
+  if (!empty($TransType))
+         $params3=array($TransType);
 
   $transStmt=sqlsrv_query($conn,$query3,$params3);
-  if($transStmt===false)
-    die(print_r(sqlsrv_errors, true));
+  if($transStmt===false){
+    throw new Exception('Sorry unable to fetch data..plz try again');
+    //$searchSuccess=false;
+   // die(print_r(sqlsrv_errors, true));
+  }
+
   if($row=sqlsrv_fetch_array($transStmt,SQLSRV_FETCH_NUMERIC)){
     $tranname=$row[0];
 
   }
+
+  $searchSuccess=true;
   sqlsrv_free_stmt($deedStmt);
   sqlsrv_free_stmt($transStmt);
   sqlsrv_free_stmt($partyStmt);
   sqlsrv_close($conn);
 }
   catch(Exception $e){
+    $searchSuccess=false;
     sqlsrv_free_stmt($partyStmt);
     sqlsrv_free_stmt($transStmt);
     sqlsrv_free_stmt($deedStmt);
     sqlsrv_close($conn);
-    echo $e->getMessage();
+    $errorMessage= $e->getMessage();
   }
 
   }
@@ -165,25 +194,78 @@ $params3=array($TransType);
 
     <div class="col-sm-10 blog-main">
 
+
       <div class="blog-post">
         <div class="container">
+          <h2 class="blog-post-title">Search Registered Documents</h2>
           <div class="row">
             <div class="col-md-12">
-              <h2 class="blog-post-title">Search Registered Documents</h2>
-              <div class="row">
-                <form class="form-inline" role="form" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>" method="POST">
-                  <div class="form-group">
-                    <label for="DeedNo">Deed No. :</label>
-                    <input type="text" class="form-control" id="DeedNo" name="DeedNo">
-                  </div>
-                  <div class="form-group">
-                    <label for="Year">Year :</label>
-                    <input type="text" class="form-control" id="Year" name="Year">
-                  </div>
 
-                  <button type="submit"  name='submit'class="btn btn-primary">Search</button>
-                </form>
+
+                <form class="form-horizontal" role="form" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>" method="POST">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="DeedNo">Deed No. :</label>
+                        <input type="text" class="form-control" id="DeedNo" name="DeedNo">
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="Year">Year :</label>
+                        <input type="text" class="form-control" id="Year" name="Year">
+                      </div>
+                    </div>
+
               </div>
+                  <div class="row">
+                    <div class="col-md-5">
+                    <div class="form-group">
+                      <label for="transtype" >TransactionType:</label>
+                      <select name="transaction" class="form-control" id="transaction">
+                        <?php
+                        try{
+                          $conn2 = sqlsrv_connect( $serverName, $connectionOptions);
+                          if( $conn2 === false )
+                            throw new Exception('Sorry Unable to connect to Database..plz try again');
+                            //die( print_r( sqlsrv_errors(),true ) );
+                          $query4 = "SELECT  tran_name,tran_maj_code from MajorTrans_code";
+                          //$params3=array($TransType);
+
+                          $ddlTrans=sqlsrv_query($conn2,$query4);
+                          if($ddlTrans===false)
+                            throw new Exception('Sorry unable to fetch data .. Plz try again');
+                            //die(print_r(sqlsrv_errors, true));
+
+
+                        while($row=sqlsrv_fetch_array($ddlTrans,SQLSRV_FETCH_NUMERIC)){ ?>
+
+
+                          <option value="<?php echo $row[1];?>"><?php echo $row[0];?></option>
+
+                          <?php
+
+                        }
+                        sqlsrv_free_stmt($ddlTrans);
+                        sqlsrv_close($conn);
+                        } catch(\Exception $e){
+                          if(!empty($ddlTrans))
+                          sqlsrv_free_stmt($ddlTrans);
+                          sqlsrv_close($conn);
+                          $errorMessage=$e->getMessage();
+                          //die(print_r($e->getMessage()));
+                        }
+                        ?>
+                      </select>
+
+                    </div>
+
+                      <button type="submit"  name='submit'class="btn btn-primary btn-lg">Search</button>
+                      </div>
+
+                  </div>
+                </form>
+
             </div>
           </div>
         </div><!-- /.blog-post -->
@@ -233,7 +315,16 @@ $params3=array($TransType);
         </div><!-- /.blog-post -->
       </div>
 
-<div>
+
+  <?php
+    if ($searchSuccess===false || !empty($errorMessage)){?>
+      <div class="alert alert-danger alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Error!</strong> <?php echo $errorMessage;?>
+      </div>
+
+   <?php }
+  else{  ?>
   <div class="table-responsive"  <?php if($ShowDivFlag===false) {echo 'style="display:none !important;"';}?> >
     <table class="table table-striped text-lg-center" style="text-align:center!important">
       <thead> <tr>
@@ -254,11 +345,12 @@ $params3=array($TransType);
         <td><?php echo $execSurname.' '.$execMiddleName ?></td>
         <td><?php echo $claimSurname.' '.$claimMiddlename ?></td>
         <td><?php echo $DateofPresentant ?></td>
-        <td><div  type ="button"class="btn btn-sm btn-info"><a href="src\Igr\GetScanDeed.php?DeedNo=<?php echo $deed;?>&Year=<?php echo $Year;?>" target="deedview">ViewDeed</a></div></td>
+        <td><div  type ="button"class="btn btn-sm btn-info"><a href="src/Igr/GetScanDeed.php?DeedNo=<?php echo $deed;?>&Year=<?php echo $Year;?>" target="deedview">ViewDeed</a></div></td>
       </tr>
       </tbody>
     </table>
   </div>
+      <?php }?>
 </div>
 
 
@@ -269,12 +361,14 @@ $params3=array($TransType);
   </div><!-- /.row -->
 
 </div><!-- /.container -->
+<?php
+if ($searchSuccess===true){?>
 <div class="container" <?php if($ShowDivFlag===false) {echo 'style="display:none !important;"';}?>>
   <div class="col-sm-10 col-sm-offset-2">
     <iframe name="deedview" id="deedview" frameborder="5" width="900"height="900"  scrolling="no" ></iframe>
   </div>
   </div>
-
+<?php }?>
 <footer class="blog-footer">
   <p>Develop & Design </a> by <a href="">NIC MANIPUR STATE CENTRE</a>.</p>
   <p>
